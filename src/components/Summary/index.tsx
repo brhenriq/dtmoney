@@ -6,31 +6,27 @@ import { useContext, useEffect, useState } from "react";
 import { TransactionsContext } from "../../TransactionsContext";
 
 export function Summary() {
-  const [incomeValue, setIncomeValue] = useState(0);
-  const [outcomeValue, setOutcomeValue] = useState(0);
-  const [totalValue, setTotalValues] = useState(0);
-
   const { transactions } = useContext(TransactionsContext);
 
-  useEffect(() => {
-    setIncomeValue(0);
-    setOutcomeValue(0);
-    setTotalValues(0);
+  const summary = transactions.reduce(
+    (acc, transaction) => {
+      if (transaction.type === "withdraw") {
+        acc.withdraws += transaction.amount;
+        acc.total -= transaction.amount;
+      }
+      if (transaction.type === "deposit") {
+        acc.deposits += transaction.amount;
+        acc.total += transaction.amount;
+      }
 
-    let income = 0;
-    let outcome = 0;
-
-    transactions.forEach((transaction) => {
-      if (transaction.type === "withdraw") outcome += transaction.amount;
-      if (transaction.type === "deposit") income += income + transaction.amount;
-    });
-
-    const total = income - outcome;
-
-    setIncomeValue(income);
-    setOutcomeValue(outcome);
-    setTotalValues(total);
-  }, [transactions]);
+      return acc;
+    },
+    {
+      deposits: 0,
+      withdraws: 0,
+      total: 0,
+    }
+  );
 
   return (
     <Container>
@@ -43,7 +39,7 @@ export function Summary() {
           {new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
-          }).format(incomeValue)}
+          }).format(summary.deposits)}
         </strong>
       </div>
 
@@ -53,10 +49,11 @@ export function Summary() {
           <img src={outcomeImg} alt="Saídas" />
         </header>
         <strong>
+          -
           {new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
-          }).format(outcomeValue)}
+          }).format(summary.withdraws)}
         </strong>
       </div>
 
@@ -69,7 +66,7 @@ export function Summary() {
           {new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
-          }).format(totalValue)}
+          }).format(summary.total)}
         </strong>
       </div>
     </Container>
